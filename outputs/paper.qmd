@@ -1,0 +1,573 @@
+---
+title: "Joe Biden won popular votes in 2024 US Presidential Election"
+format: pdf
+ate: "9 March 2024"
+date-format: "D MMMM YYYY"
+number-sections: true
+thanks: "Code and data in this analysis is available at: "
+toc: true
+
+---
+```{r}
+#| include: false
+# install.packages('dplyr')
+# install.packages('ggplot2')
+# install.packages('knitr')
+# install.packages('statebins')
+# install.packages('modelsummary')
+# install.packages('broom')
+# install.packages("here")
+# install.packages("kableExtra")
+
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(statebins)
+library(modelsummary)
+library(broom)
+library(readr)
+library(here)
+library(kableExtra)
+```
+
+```{r}
+#| include: false
+data_ipums_clean <-
+  read_csv(
+    file = here("inputs/IPUMS/cleaned_population_data.csv"),
+    show_col_types = FALSE
+  )
+
+data_app_clean <-
+  read_csv(
+    file = here("inputs/APP/cleaned_sample_data.csv"),
+    show_col_types = FALSE
+  )
+
+data_app_clean_20 <-
+  read_csv(
+    file = here("inputs/APP/cleaned_sample_data_20.csv"),
+    show_col_types = FALSE
+  )
+
+statevote2020 <-
+  read_csv(
+    file = here("inputs/Kaggle/cleaned_actual_data_20.csv"),
+    show_col_types = FALSE
+  )
+
+data_app_raw <-
+  read_csv(
+    file = here("inputs/APP/raw_sample_data.csv"),
+    show_col_types = FALSE
+  )
+```
+
+```{r}
+#| include: false
+race <- data_app_clean |> 
+  group_by(race) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "pre-strat",
+         group = "race") |> 
+  rename(level = race)
+
+gender <- data_app_clean |> 
+  group_by(gender) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "pre-strat",
+         group = "gender") |> 
+  rename(level = gender)
+
+education <- data_app_clean |> 
+  group_by(education) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "pre-strat",
+         group = "education") |> 
+  rename(level = education)
+
+marital <- data_app_clean |> 
+  group_by(marital) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "pre-strat",
+         group = "marital") |> 
+  rename(level = marital)
+
+age <- data_app_clean |> 
+  group_by(age) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "pre-strat",
+         group = "age") |> 
+  rename(level = age)
+
+statename <- data_app_clean |> 
+  group_by(statename) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "pre-strat",
+         group = "statename") |> 
+  rename(level = statename)
+```
+
+```{r}
+#| include: false
+race_post <- data_ipums_clean |> 
+  group_by(race) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "post-strat",
+         group = "race") |> 
+  rename(level = race)
+
+gender_post <- data_ipums_clean |> 
+  group_by(gender) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "post-strat",
+         group = "gender") |> 
+  rename(level = gender)
+
+education_post <- data_ipums_clean |> 
+  group_by(education) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "post-strat",
+         group = "education") |> 
+  rename(level = education)
+
+marital_post <- data_ipums_clean |> 
+  group_by(marital) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "post-strat",
+         group = "marital") |> 
+  rename(level = marital)
+
+age_post <- data_ipums_clean |> 
+  group_by(age) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "post-strat",
+         group = "age") |> 
+  rename(level = age)
+
+statename_post <- data_ipums_clean |> 
+  group_by(statename) |> 
+  summarise(n = n()) |> 
+  mutate(pct = n / sum(n),
+         type = "post-strat",
+         group = "statename") |> 
+  rename(level = statename)
+```
+
+```{r}
+#| include: false
+variable1 <- rbind(gender, gender_post, marital, marital_post, race, race_post, age, age_post)
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-demographics1
+#| fig-cap: Voter Demographics (Age, Gender, Marital Status, Race)
+variable1 |>
+  ggplot(aes(as.factor(level), pct, group = as.factor(type), linetype = as.factor(type))) + 
+  geom_line() + 
+  facet_wrap(~ group, nrow = 2, scales = "free") + 
+  theme(axis.text.x = element_text(angle = 45, size = 7, hjust = 1, vjust = 1)) +
+  labs(x = "Category", y = "Proportion", linetype = "Data Set") + 
+  scale_y_continuous(labels = scales::percent) +
+  geom_hline(yintercept = 0.5, alpha = 0.3)
+```
+
+```{r}
+#| include: false
+variable2 <- rbind(education, education_post, statename, statename_post)
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-demographics2
+#| fig-cap: Voter Demographics (Education, State of Residence)
+variable2 |> 
+  ggplot(aes(level, pct, group = as.factor(type), linetype = as.factor(type))) + 
+  geom_line() + 
+  facet_wrap(~ group, nrow = 2, scales = "free") + 
+  theme(axis.text.x = element_text(angle = 45, size = 5, hjust = 1)) +
+  labs(x = "Category", y = "Proportion", linetype = "Data Set",
+       title = "Voter Demographics (Education, State of Residence)") +
+  scale_y_continuous(labels = scales::percent)
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-survey_vote
+#| fig-cap: Proportion of the Two Parties in the Survey
+data_app_clean |>
+  group_by(pid3) |>
+  summarise(n = n()) |>
+  mutate(Proportion = round(n/sum(n)*100)) |>
+  ggplot(aes(x = pid3, y = n)) +
+  geom_bar(stat = "identity", fill = "grey", color = "black") +
+  geom_text(aes(label = paste0(Proportion, "%")), vjust = -0.5, color = "black") +
+  labs(x = "Party",
+       y = "Number of Respondents") + 
+  scale_y_continuous(limits = c(0, 10000)) +
+  theme_minimal()
+```
+
+```{r}
+#| include: false
+survey_map <- data_app_clean |>
+  group_by(statename, vote_biden) |>
+  summarise(n = n()) |>
+  group_by(statename) |>
+  mutate(prop = n/sum(n)) |>
+  filter(vote_biden == "1")
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-sample_map
+#| fig-cap: Support for Joe Biden and Donald Trump by State in the Sample
+survey_map |>
+  ggplot(aes(fill = prop, state = statename)) + 
+  geom_statebins() + 
+  scale_fill_gradient2(low = "#971116", high = "#005D94", mid = "white", midpoint = 0.5) +
+  theme_classic() +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(fill = "Proportion of \nSupporting Biden")
+```
+
+```{r}
+#| include: false
+model <- glm(vote_biden ~ race + gender + education + statename + marital + age, 
+             data = data_app_clean, family = binomial())
+```
+
+```{r}
+#| include: false
+saveRDS(
+  model,
+  file = "us_election_model_mrp.rds"
+)
+```
+
+```{r}
+#| include: false
+modelsummary(model)
+coefficients <- broom::tidy(model, conf.int = TRUE)
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: tbl-coefficients
+#| tbl-cap: Coefficients of the Voting Model
+coefficients |> kable(digits = 2)
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-coefficients_model
+#| fig-cap: Estimates of Coefficients in the Model
+coefficients |> 
+  ggplot(aes(x = estimate, y = term)) + 
+  geom_point() +
+  geom_errorbar(aes(xmin = conf.low, xmax = conf.high), color = "skyblue3", position = position_dodge(width = 0.2)) +
+  labs(x = "Estimates", y = "Coefficients") +
+  theme_bw() + 
+  theme(axis.text.y = element_text(size = 4.5))
+```
+
+```{r}
+#| include: false
+proportion_data <- data_ipums_clean |>
+  group_by(statename, race, age, gender, marital, education) |>
+  summarise(n = n()) |> 
+  group_by(statename) |>
+  mutate(prop = n/sum(n))
+
+proportion_data$estimate <- predict.glm(model, newdata = proportion_data, type = "response")
+proportion_data <- proportion_data |> mutate(num_voters = n*estimate)
+
+errors <- predict.glm(model, newdata = proportion_data, type = "response", se.fit = T)
+upper_e <- errors$fit + errors$se.fit
+lower_e <- errors$fit - errors$se.fit
+proportion_error <- cbind(proportion_data, lower_e, upper_e) |> 
+  rename("lower_bound" = ...11, "upper_bound" = ...12)
+```
+
+```{r}
+#| include: false
+proportion_error <- proportion_error |>
+  mutate(lower_estimate = n*lower_bound, upper_estimate = n*upper_bound)
+
+vote_for_biden <- proportion_error |> mutate(biden_predict_prop = estimate* prop,
+                                       biden_predict_prop_lower = lower_bound * prop,
+                                       biden_predict_prop_upper = upper_bound * prop) |>
+  group_by(statename) |>
+  summarise(biden_predict = sum(biden_predict_prop),
+            biden_lower = sum(biden_predict_prop_lower),
+            biden_upper = sum(biden_predict_prop_upper))
+```
+
+
+```{r}
+#| include: false
+data1 <- data_app_clean |>
+  group_by(statename, vote_biden) |>
+  summarise(n = n()) |>
+  mutate(prop = n / sum(n))
+
+data2 <- inner_join(data1, vote_for_biden, by = "statename") |> filter(vote_biden == '1')
+
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-sample_and_population
+#| fig-cap: Proportion of Voters in Each State Voting for Biden
+data2 |>
+  ggplot(aes(x = statename, y = biden_predict * 100)) +
+  geom_point(aes(color = "Biden Prediction"), size = 2) + 
+  geom_line(aes(group = 1), linetype = "solid", size = 0.8) +
+  geom_ribbon(aes(group = 1, ymin = biden_lower * 100, ymax = biden_upper * 100), alpha = 0.2, fill = "blue3") +
+  geom_line(aes(x = statename, y = prop * 100, group = 2), 
+            linetype = "dashed", color = "red2", size = 0.8) +
+  geom_point(data = data2, aes(x = statename, y = prop * 100, color = "Population"), size = 2) +
+  geom_hline(aes(yintercept = 40), alpha = 0.5, linetype = "dotted", color = "gray") +
+  geom_hline(aes(yintercept = 60), alpha = 0.5, linetype = "dotted", color = "gray") +
+  geom_hline(aes(yintercept = 80), alpha = 0.5, linetype = "dotted", color = "gray") +
+  geom_hline(aes(yintercept = 50), alpha = 0.6, color = "blue4") +
+  scale_color_manual(name = "Data", values = c("Biden Prediction" = "black", "Population" = "red2"), labels = c("Population Prediction", "Survey Sample")) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 55, size = 6, hjust = 1, vjust = 1),
+        legend.position = "bottom",
+        legend.title = element_text(size = 10),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank()) +
+  labs(x = "State", y = "Voting Percentage for Biden")
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-population_map
+#| fig-cap: Predicted support for Joe Biden and Donald Trump by State
+vote_for_biden |>
+  ggplot(aes(fill = biden_predict, state = statename)) + 
+  geom_statebins() + 
+  scale_fill_gradient2(low = "#971116", high = "#005D94",
+                       mid = "white", midpoint = 0.5) +
+  theme_classic() +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(fill = "Proportion of \nSupporting Biden")
+```
+
+```{r}
+#| include: false
+final_data <- data2 |>
+  inner_join(data_ipums_clean, by = c("statename" = "statename"))
+
+total_proportion <- sum(final_data$biden_predict * (final_data$n / sum(final_data$n)))
+total_proportion
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: tbl-survey_votes_2020
+#| tbl-cap: Votes in 2020 from the Survey Respondents
+data_app_raw |>
+  group_by(presvote20post) |>
+  summarize(count = n()) |>
+  mutate(proportion = count / sum(count) * 100) |> 
+  rename('Proportion (%)' = proportion, 
+         'Candidates' = presvote20post, 
+         'Number of Votes' = count) |> 
+  kable()
+```
+
+```{r}
+#| include: false
+pid3_levels <- c("Republican", "Democrat")
+```
+
+```{r}
+#| label: fig-balanced_two_compare
+#| fig-cap: Distribution of Supporting Parties Now and Votes in 2020 from the Survey Respondents
+#| echo: false
+#| layout-ncol: 2
+#| warning: false
+#| message: false
+#| fig-subcap: ["Parties Respondents Support Now", "Respondents' votes in 2020"]
+data_app_clean_20 |> mutate(pid3 = factor(pid3, levels = pid3_levels)) |>
+  ggplot(aes(x = pid3)) + 
+  geom_bar(fill = "grey", color = "black") +
+  geom_text(stat = "count", aes(label = ..count..), vjust = 2) +
+  labs(x = "Party", y = "Number of Counts") +
+  theme_minimal()
+
+data_app_clean_20 |>
+  ggplot(aes(x = vote2020)) +
+  geom_bar(fill = "grey", color = "black") +
+  geom_text(stat = "count", aes(label = ..count..), vjust = 2) +
+  labs(x = "Candidate in 2020", y = "Number of Counts") +
+  theme_minimal()
+```
+
+
+```{r}
+#| include: false
+survey_map_20 <- data_app_clean_20 |>
+  group_by(statename, vote_biden) |>
+  summarise(n = n()) |>
+  group_by(statename) |>
+  mutate(prop = n / sum(n)) |>
+  filter(vote_biden == "1")
+```
+
+```{r}
+#| label: fig-actual_survey_compare
+#| fig-cap: Distribution of prices of Paris Airbnb rentals in December 2023
+#| echo: false
+#| warning: false
+#| message: false
+#| layout-ncol: 2
+#| fig-subcap: ["2020 Actual Voting Results by States", "2020 Voting Results From Balanced Survey Respondentsby by States"]
+
+# Actual votes in 2020
+statevote2020 |> 
+  ggplot(aes(fill = support_biden_prop, state = state)) + 
+  geom_statebins() + 
+  scale_fill_gradient2(low = "#971116", high = "#005D94",
+                       mid = "white", midpoint = 0.5) +
+  theme_classic() +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(fill = "Proportion of \nSupporting Biden")
+
+# Survey votes in 2020
+survey_map_20 |>
+  ggplot(aes(fill = prop, state = statename)) + 
+  geom_statebins() + 
+  scale_fill_gradient2(low = "#971116", high = "#005D94", mid = "white", midpoint = 0.5) +
+  theme_classic() +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(fill = "Proportion of \nSupporting Biden")
+```
+
+```{r}
+#| include: false
+model2 <- glm(vote_biden ~ race + gender + education + statename + marital + age, 
+             data = data_app_clean_20, family = binomial())
+
+coefficients_20 <- broom::tidy(model2, conf.int = TRUE)
+```
+
+```{r}
+#| include: false
+saveRDS(
+  model2,
+  file = "us_election_model_balanced_mrp.rds"
+)
+```
+
+```{r}
+#| include: false
+proportion_data_20 <- data_ipums_clean |>
+  group_by(statename, race, age, gender, marital, education) |>
+  summarise(n = n()) |> 
+  group_by(statename) |>
+  mutate(prop = n/sum(n))
+
+proportion_data_20$estimate <- predict.glm(model2, newdata = proportion_data_20, type = "response")
+proportion_data_20 <- proportion_data_20 |> mutate(num_voters = n*estimate)
+
+errors_20 <- predict.glm(model2, newdata = proportion_data_20, type = "response", se.fit = T)
+upper_e_20 <- errors_20$fit + errors_20$se.fit
+lower_e_20 <- errors_20$fit - errors_20$se.fit
+proportion_error_20 <- cbind(proportion_data_20, lower_e_20, upper_e_20) |> 
+  rename("lower_bound" = ...11, "upper_bound" = ...12)
+
+proportion_error_20 <- proportion_error_20 |>
+  mutate(lower_estimate_20 = n*lower_bound, upper_estimate_20 = n*upper_bound)
+```
+
+```{r}
+#| include: false
+vote_for_biden_20 <- proportion_error_20 |> mutate(biden_predict_prop_20 = estimate* prop,
+                                       biden_predict_prop_lower_20 = lower_bound * prop,
+                                       biden_predict_prop_upper_20 = upper_bound * prop) |>
+  group_by(statename) |>
+  summarise(biden_predict_20 = sum(biden_predict_prop_20),
+            biden_lower_20 = sum(biden_predict_prop_lower_20),
+            biden_upper_20 = sum(biden_predict_prop_upper_20))
+```
+
+```{r}
+#| include: false
+data3 <- data_app_clean_20 |>
+  group_by(statename, vote_biden) |>
+  summarise(n = n()) |>
+  mutate(prop = n / sum(n))
+
+data4 <- inner_join(data3, vote_for_biden_20, by = "statename") |> filter(vote_biden == '1')
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-balanced_map
+#| fig-cap: Predicted support for Joe Biden and Donald Trump by State (Using Balanced Survey Results)
+vote_for_biden_20 |>
+  ggplot(aes(fill = biden_predict_20, state = statename)) + 
+  geom_statebins() + 
+  scale_fill_gradient2(low = "#971116", high = "#005D94",
+                       mid = "white", midpoint = 0.5) +
+  theme_classic() +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(fill = "Proportion of \nSupporting Biden")
+```
+
+```{r}
+#| include: false
+final_data_20 <- data4 |>
+  inner_join(data_ipums_clean, by = c("statename" = "statename"))
+
+total_proportion_20 <- sum(final_data_20$biden_predict_20 * (final_data_20$n / sum(final_data_20$n)))
+total_proportion_20
+```
+
