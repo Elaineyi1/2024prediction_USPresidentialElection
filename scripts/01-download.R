@@ -3,10 +3,22 @@
 # and Polarization Research Lab, and the 2020 vote results from Kaggle
 # Author: Boxuan Yi
 # Email: boxuan.yi@mail.utoronto.ca
-# Date: 7 March 2023
+# Date: 7 March 2024
 # Prerequisites: Request for IPUMS ACS data.
 
 # install.packages('ipumsr')
+# install.packages('dplyr')
+# install.packages('readr')
+# install.packages('tidyr')
+# install.packages('arrow')
+# install.packages('dplyr')
+# install.packages('ggplot2')
+# install.packages('knitr')
+# install.packages('statebins')
+# install.packages('modelsummary')
+# install.packages('broom')
+# install.packages("here")
+# install.packages("kableExtra")
 library(ipumsr)
 
 # Read in the population data from IPUMS (3373378 obs)

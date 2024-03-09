@@ -3,11 +3,10 @@
 # and the survey data (sample) from Polarization Research Lab, America's Political Pulses
 # Author: Boxuan Yi
 # Email: boxuan.yi@mail.utoronto.ca
-# Date: 7 March 2023
+# Date: 7 March 2024
 # Prerequisites: Get familiar with the population and sample datasets
 
-# install.packages('dplyr')
-# install.packages('readr')
+library(arrow)
 library(dplyr)
 library(readr)
 
@@ -116,6 +115,13 @@ data_ipums_clean <- data_ipums_clean |>
          age = age_group)
 
 # Save cleaned datasets
+write_parquet(x = data_ipums_clean,
+              sink = "inputs/IPUMS/cleaned_population_data.parquet")
+write_parquet(x =  data_app_clean,
+              sink = "inputs/APP/cleaned_sample_data.parquet")
+write_parquet(x = data_app_raw,
+              sink = "inputs/APP/raw_sample_data.parquet")
+
 write_csv(
   x = data_ipums_clean,
   file = "inputs/IPUMS/cleaned_population_data.csv"
@@ -130,4 +136,3 @@ write_csv(
   x = data_app_raw,
   file = "inputs/APP/raw_sample_data.csv"
 )
-

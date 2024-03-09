@@ -1,24 +1,15 @@
 ---
 title: "Joe Biden won popular votes in 2024 US Presidential Election"
 format: pdf
-ate: "9 March 2024"
+date: "9 March 2024"
 date-format: "D MMMM YYYY"
 number-sections: true
-thanks: "Code and data in this analysis is available at: "
+thanks: "Code and data in this analysis is available at: https://github.com/Elaineyi1/2024prediction_USPresidentialElection"
 toc: true
 
 ---
 ```{r}
 #| include: false
-# install.packages('dplyr')
-# install.packages('ggplot2')
-# install.packages('knitr')
-# install.packages('statebins')
-# install.packages('modelsummary')
-# install.packages('broom')
-# install.packages("here")
-# install.packages("kableExtra")
-
 library(dplyr)
 library(ggplot2)
 library(knitr)
@@ -28,10 +19,16 @@ library(broom)
 library(readr)
 library(here)
 library(kableExtra)
+library(arrow)
 ```
 
 ```{r}
 #| include: false
+# data_ipums_clean <- read_parquet(file = "inputs/IPUMS/cleaned_population_data.parquet")
+# data_app_clean <- read_parquet(file = "inputs/APP/cleaned_sample_data.parquet")
+# data_app_clean_20 <- read_parquet(file = "inputs/APP/cleaned_sample_data_20.parquet")
+# statevote2020 <- read_parquet(file = "inputs/Kaggle/cleaned_actual_data_20.parquet")
+# data_app_raw <- read_parquet(file = "inputs/APP/raw_sample_data.parquet")
 data_ipums_clean <-
   read_csv(
     file = here("inputs/IPUMS/cleaned_population_data.csv"),

@@ -2,13 +2,13 @@
 # Purpose: Create and clean the balanced survey datasets
 # Author: Boxuan Yi
 # Email: boxuan.yi@mail.utoronto.ca
-# Date: 7 March 2023
+# Date: 7 March 2024
 # Prerequisites: Know the 2020 US presidential election popular votes ratio
 
-# install.packages('tidyr')
 library(dplyr)
 library(tidyr)
 library(readr)
+library(arrow)
 
 set.seed(123)
 # Create a balanced survey dataset with 2020 votes ratio matching the actual votes ratio in the 2020 election.
@@ -87,3 +87,8 @@ write_csv(
   file = "inputs/Kaggle/cleaned_actual_data_20.csv"
 )
 
+write_parquet(x = data_app_clean_20,
+              sink = "inputs/APP/cleaned_sample_data_20.parquet")
+
+write_parquet(x = statevote2020,
+              sink = "inputs/Kaggle/cleaned_actual_data_20.parquet")
