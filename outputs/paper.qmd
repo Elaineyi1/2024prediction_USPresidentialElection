@@ -1,12 +1,18 @@
 ---
-title: "Joe Biden won popular votes in 2024 US Presidential Election"
-format: pdf
-date: "9 March 2024"
+title: "Biden Predicted to Secure a Minimum 10% Lead in Popular Votes Over Trump in the 2024 Election"
+author: 
+  - Boxuan Yi
+format: 
+  pdf:
+    documentclass: article
+    geometry: margin = 1in
+    abstract: ""
+date: "10 March 2024"
 date-format: "D MMMM YYYY"
 number-sections: true
 thanks: "Code and data in this analysis is available at: https://github.com/Elaineyi1/2024prediction_USPresidentialElection"
 toc: true
-
+bibliography: references.bib
 ---
 ```{r}
 #| include: false
@@ -357,6 +363,8 @@ saveRDS(
 modelsummary(model)
 coefficients <- broom::tidy(model, conf.int = TRUE)
 ```
+
+\newpage
 
 ```{r}
 #| message: false
