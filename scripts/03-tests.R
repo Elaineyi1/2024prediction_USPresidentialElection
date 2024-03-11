@@ -1,8 +1,8 @@
-# Purpose: Download and Read in census data and survey data from IPUMS 
-# and Polarization Research Lab, and the 2020 vote results from Kaggle
+# Purpose: Test the cleaned datasets from 
+# IPUMS, Polarization Research Lab, and the 2020 vote results from Kaggle
 # Author: Boxuan Yi
 # Email: boxuan.yi@mail.utoronto.ca
-# Date: 9 March 2024
+# Date: 11 March 2024
 # Prerequisites: Be familar with the datasets.
 
 

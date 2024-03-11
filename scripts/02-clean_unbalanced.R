@@ -1,9 +1,9 @@
 #### Preamble ####
-# Purpose: Clean the census data (population) from IPUMS
+# Purpose: Clean the census data from IPUMS
 # and the survey data (sample) from Polarization Research Lab, America's Political Pulses
 # Author: Boxuan Yi
 # Email: boxuan.yi@mail.utoronto.ca
-# Date: 7 March 2024
+# Date: 11 March 2024
 # Prerequisites: Get familiar with the population and sample datasets
 
 library(arrow)

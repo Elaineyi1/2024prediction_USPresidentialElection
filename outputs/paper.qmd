@@ -7,7 +7,7 @@ format:
     documentclass: article
     geometry: margin = 1in
     abstract: "The dominance of only two political parties in the current US political system adds an extra layer of competitiveness and interest to the presidential election. This paper uses multilevel regression with post-stratification to predict the outcome between the two candidates, Biden and Trump. The model, along with the post-stratification, indicates that Biden is poised to secure a substantial lead of at least 10% in popular votes, suggesting a strong likelihood that the US will continue on a democratic pathway."
-date: "10 March 2024"
+date: "11 March 2024"
 date-format: "D MMMM YYYY"
 number-sections: true
 thanks: "Code and data in this analysis is available at: https://github.com/Elaineyi1/2024prediction_USPresidentialElection"

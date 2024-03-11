@@ -1,8 +1,8 @@
 #### Preamble ####
-# Purpose: Create and clean the balanced survey datasets
+# Purpose: Create and clean the balanced survey datasets using the 2020 actual votes dataset from Kaggle
 # Author: Boxuan Yi
 # Email: boxuan.yi@mail.utoronto.ca
-# Date: 7 March 2024
+# Date: 11 March 2024
 # Prerequisites: Know the 2020 US presidential election popular votes ratio
 
 library(dplyr)

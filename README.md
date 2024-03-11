@@ -14,5 +14,8 @@ The repo is structured as:
 -   `scripts` contains the R scripts used to simulate, download, cleanand test the data.
 -   `LLM` contains the link and text of the conversations in ChatGpt.
 
+## Packages Installization
+The codes used to install packages are in `scripts/01-download.R`, with # before each code.
+
 ## LLM Usage
 ChatGpt was used for correcting grammar and modifying the codes. It helped improve writings and codes. The chat can be found in LLM/llm.txt. No other LLM was used.
