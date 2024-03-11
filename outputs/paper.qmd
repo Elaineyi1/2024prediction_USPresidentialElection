@@ -6,7 +6,7 @@ format:
   pdf:
     documentclass: article
     geometry: margin = 1in
-    abstract: ""
+    abstract: "The dominance of only two political parties in the current US political system adds an extra layer of competitiveness and interest to the presidential election. This paper uses multilevel regression with post-stratification to predict the outcome between the two candidates, Biden and Trump. The model, along with the post-stratification, indicates that Biden is poised to secure a substantial lead of at least 10% in popular votes, suggesting a strong likelihood that the US will continue on a democratic pathway."
 date: "10 March 2024"
 date-format: "D MMMM YYYY"
 number-sections: true
@@ -27,6 +27,15 @@ library(here)
 library(kableExtra)
 library(arrow)
 ```
+\newpage
+# Introduction
+The forthcoming 2024 United States presidential election, scheduled for Tuesday, November 5, 2024 [@270towin270toWin2024], will see US citizens electing to determine the nation’s president and vice president, shaping the pathways of the country for the next four years. The current president Joe Biden, a member of the Democratic Party, is running for re-election, and his predecessor, Donald Trump from the Republican Party, is running for re-election for a nonconsecutive term. Throughout campaigns, political parties articulate their stances and future policies on broader issues such as abortion, immigration, safety, and LGBTQ+ rights. The Democratic and Republican parties typically hold distinct yet steadfast viewpoints, attracting a significant number of supporters among US citizens. However, the post-COVID era has brought about significant changes economically, socially, and politically, making it particularly intriguing to see how these shifts will influence the upcoming 60th quadrennial presidential election.
+
+I will use multilevel regression with post-stratification (MRP) to model and then predict whether Biden or Trump will win the popular votes, which is the total number of votes cast by individual citizens. MRP in this paper involves collecting individual-level survey data from the Polarization Research Lab, analyzing the proportion of support among different demographical groups, and applying the proportion to a larger census dataset from the IPUMS USA, 2022 American Community Survey [@ipumsIPUMS]. One thing that needs to be pointed out is that rather than just depending on the popular votes, the United States elects its president though electoral college. The 51 states are allocated 538 electoral-college votes. The numbers of votes granted to each state, which are different, depend on its representation in the Senate and House of Representatives, and usually every state gives all of its electoral-college votes to whomever wins the popular vote in that state [@economistDoesAmericas]. In other words, it is possible that one candidate wins the popular vote, representing the collective choice of voters, but loses the presidential election because of the distribution of electoral college votes, like the election in 2016 where Hillary Clinton won the popular votes (48%) while losing the election due to the states that supported her have fewer electoral college votes than the ones supporting Trump [@nytimes2016Presidential]. 
+
+In this paper, I will only predict the popular votes for two candidates, Joe Biden and Donald Trump, utilizing predictors as follows: race, gender, age group, highest level of education, the state of residence. Two datasets will be generated from the survey data —— one being simply cleaned, and the other cleaned and balanced. The latter involves adjusting the survey respondents’ votes in 2020 to align with the actual 2020 results while keeping other characteristics the same. Since the balanced dataset has fewer observations than the original one, this paper focuses on the unbalanced dataset to avoid potential sampling biases. Using the unbalanced dataset, my prediction suggests that Joe Biden is poised to win 62.96% of the popular votes, and 57.61% using the balanced one. Both percentages indicate that Biden is going to secure a minimum 10% lead in the popular votes, which is a pretty large lead in election history.
+
+In this paper, I will delve into the data utilized for analysis, encompassing both survey and census data, in the upcoming section. Following that, I will introduce the model designed to generalize patterns and forecast election outcomes. I will also talk about the predicted results derived from the model. Lastly, I will discuss the results in a broader context and address weaknesses of this paper as well as the future explorations. This paper use the programming language R [@r]. The analysis, the model and the visualizations use the following packages: ipumsr [@ipumsr], dplyr [@rdplyr], readr [@rreadr], tidyr [@rtidyr], arrow [@rarrow], ggplot2 [@rggplot2], knitr [@rknitr], statebins [@rstatebins], modelsummary [@rmodelsummary], broom [@rbroom], here [@rhere], and kableExtra [@r kableExtra]. 
 
 ```{r}
 #| include: false
@@ -168,6 +177,25 @@ statename_post <- data_ipums_clean |>
   rename(level = statename)
 ```
 
+# Data
+## Survey Data and Variables Selection
+The survey data I use is from the America’s Political Pulse Survey by the Polarization Research Lab [@polarization]. This open-access online survey contains a series of core questions on politics and special questions designed by political science researchers, posing inquiries to a thousand Americans every week. All the respondents, the population, are paid survey takers from the YouGov survey platform. It collects demographic information, party each respondent support, and core questions like Democrat/Republican thermometer or pride in being American.
+
+The datasets are available weekly. For this paper, I choose 20 weeks of data, spanning from October 6th, 2023 to February 23rd, 2024, forming a dataset with 20000 observations and 69 variables. The variable ‘pid3’ shows the answers to ‘Generally speaking, do you think of yourself as a…?’, with responses being Democratic, Republican, or Independent. For this paper, I will use this variable as supporting the Democratic Party/Biden or Republican Party/Trump for analysis. 
+
+In order to predict the 2024 presidential election result using several predictors, I first need to choose variables that can effectively help distinguish between Democrats and Republicans. The survey dataset results show that females tend to support Democracy more than males, with 63.9% female and 58.2% male respondents supporting Democracy. People with higher levels of education tend to support the Democratic Party, especially those who completed post-graduate studies. 55.1% of high school graduates and 60.1% of people with no high school support the Democratic Party, while 72.8% of post-grads support it. More widowed and married people consider themselves as Republicans, while more people who are divorced, never married and separated consider themselves as Democrats. Different ethnicities also show different preferences. Around 74.8% of Asians and 79.7% of African Americans support Biden, compared to 55.7% of white people. Additionally, since the presidential election is voted by state, I would choose race, gender, marital status, highest level of education and state of residence as the variables to explain the binary support for Biden.
+
+The voter turnout rates for different age groups are different. Most of the time, the turnout rate among 60+ years old is the highest, followed by people between 45 to 59, but this is still about 10% higher than the rate among 30-44 years old, and the people from 18 to 29 have the lowest rate of voting for the past 30 years [@ourworldindataElectionVoter]. Hence, I will also use age groups as another factor that affects the popular vote outcome, and the grouping is 18-29, 30-44, 45-59, 60+.
+
+About 22% of individuals identifying with both the Democratic and Republican parties consider voting important, and a significant 70% from each party consider it very important. In this survey, both Democrats and Republicans exhibit similar perceptions of voting importance, indicating that the the survey doesn't inaccurately estimate voting due to differing levels of importance attached to it by the parties. For all the Republican respondents, 55.7% are extremely proud to be Americans, 27.7% are very proud, while only 1.4% are not proud. For all the Democrat respondents, 33.3% are extremely proud, 25.5 are very proud, and 7.3% are not at all proud. Republicans seem to be more polarized as 52.5% of them consider themselves as MAGA Republicans. 22.9% of Democrats think they are very liberal, 36.1% are liberal, while 27.65% of Republicans consider themselves as very conservative, and 44.0% are conservative. 
+
+There are also significant differences in religious beliefs. 80% of Republicans think religion is important in their lives (54% very important, 26% somewhat important), while 54.8% of Democrats see it as important (31.1% very important, 23.7% somewhat). Half of the Republican respondents think they are “born-again,” or evangelical Christian, while only 26.5% of Democrats think so. 38.3% of Democrats are ‘Agnostic,’ ‘Atheist,’ or ‘Nothing in particular,’ and 47.6% are ‘Protestant’ or ‘Roman Catholic.’ However, only 17.2% of Republicans are ‘Agnostic,’ ‘Atheist,’ or ‘Nothing in particular,’ and 71.2% are ‘Protestant’ or ‘Roman Catholic.’ Since religion is not collected in the census data, I will not use this factor, but this could be a potential predictor as well.
+
+## Post-Stratification Data
+IPUMS USA is a website that contains decennial census from 1790 to 2010, as well as survey data from the American Community Surveys (ACS) and the Puerto Rican Community Surveys from 2000 to the present [@ipumsIPUMS]. The annual ACS public-use samples typically include housing data, demographic data, economic data, and some other individual characteristics. For this analysis, I will use the most recent American Community Survey, the 2022 Sample, as the post-stratification dataset to represent the voter population and adjust the weight of the survey data. This weighted survey used cluster sampling to obtain 1-in-100 national random sample of the population. The population for this sample was the entire US population, categorized into households as subgroups, and the responses of the sampled subgroups were collected.
+
+ACS 2022 dataset consists of 3,373,378 observations, making it a large and relatively representative dataset. The variables I select are gender, age, marital status, race, education and stateicp (ICPSR codes of states) to match with the survey data variables I choose. I then clean and rename the variables to maintain unity with the survey data. [@fig-demographics1] and [@fig-demographics2] display the voters’ demographics in both survey data (pre-strat) and census data (post-strat), with solid lines representing the post-stratification data and dotted lines representing the survey data. The differences in the two lines are due to weight adjustment. Some noticeable adjustment in [@fig-demographics1] include more people aged 30 to 44, more females, fewer married people, fewer asians, and more African American completing the survey. [@fig-demographics2] classifies people based on education and state of residence. There are more people from Florida, New York and Texas in the survey, while states like Wyoming have very few participants, potentially bias. 
+
 ```{r}
 #| include: false
 variable1 <- rbind(gender, gender_post, marital, marital_post, race, race_post, age, age_post)
@@ -204,11 +232,12 @@ variable2 |>
   ggplot(aes(level, pct, group = as.factor(type), linetype = as.factor(type))) + 
   geom_line() + 
   facet_wrap(~ group, nrow = 2, scales = "free") + 
-  theme(axis.text.x = element_text(angle = 45, size = 5, hjust = 1)) +
+  theme(axis.text.x = element_text(angle = 45, size = 4, hjust = 1)) +
   labs(x = "Category", y = "Proportion", linetype = "Data Set",
        title = "Voter Demographics (Education, State of Residence)") +
   scale_y_continuous(labels = scales::percent)
 ```
+[@fig-survey_vote] depicts the proportion of support for both parties among the survey respondents. 61% support the Democratic Party and 39% support the Republican Party. This ratio is not accurate compared to the actual ratio. To further visualize it, [@fig-sample_map] uses a gradient colour scale to present the US map of support by state, with blue representing support for Biden, and red representing support for Trump. States like Wyoming (WY), Kansas (KS), Nebraska (NE) and Alabama (AL) are blue in [@fig-sample_map] while they are reliably red states in recent decades [@pewresearchReligiousLandscape]. Therefore, to adjust this sample bias, I also create a balanced survey dataset.
 
 ```{r}
 #| message: false
@@ -256,6 +285,9 @@ survey_map |>
   labs(fill = "Proportion of \nSupporting Biden")
 ```
 
+## US Election 2020 Dataset and the Balanced Survey Dataset
+Among the respondents in the survey, those who voted for Biden in 2020 (44.7%) are approximately 1.5 times as many as those who voted for Trump (30.7%) as shown in [@tbl-survey_votes_2020]. This difference is substantial when compared to the actual popular vote ratio in 2020, which is 51.3%:46.9% [@cookpolitical2020Popular]. I adjust the survey ratio of 2020 votes to match the actual 51.3%:46.9% ratio to create a balanced dataset. To be more specific, I retain all the observations that supported Trump in 2020 but randomly select a certain number of observations that supported Biden in 2020. The number of rows selected is determined by the floor value of 51.3/46.9 times the number of rows that supported Trump. 
+
 ```{r}
 #| message: false
 #| echo: false
@@ -272,11 +304,14 @@ data_app_raw |>
   kable()
 ```
 
+The limitation of this method is that the balanced sample is smaller than the unbalanced sample, causing potential biases and underrepresentation for some groups. The strength is that the balanced dataset contains a more reasonable, rather than a disparate, proportion of supporters. [@fig-balanced_two_compare] (a) shows 3851 respondents consider themselves as Republicans, and 4650 respondents consider themselves as Democrats. [@fig-balanced_two_compare] (b) indicates 3896 people voted for Trump and 4605 voted for Biden in the last election. These two groups of numbers are more balanced. 
+
 ```{r}
 #| include: false
 pid3_levels <- c("Republican", "Democrat")
 ```
 
+\newpage
 ```{r}
 #| label: fig-balanced_two_compare
 #| fig-cap: Distribution of Supporting Parties Now and Votes in 2020 from the Survey Respondents
@@ -300,7 +335,7 @@ data_app_clean_20 |>
   theme_minimal()
 ```
 
-
+The data creating [@fig-actual_survey_compare] (a) is a US Election 2020 dataset from Kaggle [@kaggleElection2020], which contains county-level data from the 2020 US Election, including votes, candidates and whether each candidate wins the election. [@fig-actual_survey_compare] shows two maps, one presents the 2020 actual voting results, and one depicts the 2020 voting results from the balanced survey. The distribution of votes from the balanced dataset is more accurate. Alabama (AL) is red in [@fig-actual_survey_compare], Kansas (KS) and Nebraska (NE) are not as blue as in [@fig-sample_map]. I will use the ACS dataset to adjust balanced survey dataset as well. A prediction map using the balanced dataset will be included at the end of the Results section.
 ```{r}
 #| include: false
 survey_map_20 <- data_app_clean_20 |>
@@ -313,12 +348,12 @@ survey_map_20 <- data_app_clean_20 |>
 
 ```{r}
 #| label: fig-actual_survey_compare
-#| fig-cap: Distribution of prices of Paris Airbnb rentals in December 2023
+#| fig-cap: 2020 Election Votes
 #| echo: false
 #| warning: false
 #| message: false
 #| layout-ncol: 2
-#| fig-subcap: ["2020 Actual Voting Results by States", "2020 Voting Results From Balanced Survey Respondentsby by States"]
+#| fig-subcap: ["2020 Actual Voting Results by States", "2020 Voting Results From Balanced Survey Respondents by States"]
 
 # Actual votes in 2020
 statevote2020 |> 
@@ -343,6 +378,33 @@ survey_map_20 |>
         axis.ticks = element_blank()) +
   labs(fill = "Proportion of \nSupporting Biden")
 ```
+
+\newpage
+
+# Model
+To predict the 2024 election result, I will use Multilevel Regression with Post-Stratification (MRP), a statistical technique that combines the strengths of multilevel modelling and post-stratification. MRP takes a sample, usually a large-scale poll, and uses the poll results to generate a model. This model is then applied to a post-stratification dataset, typically a census or another larger sample [@tellingstorieswithdataTellingStories]. In this paper, the sample is the America’s Political Pulse dataset [@polarization], and the census is the IPUMS ACS dataset [@ipumsIPUMS]. Logistic regression will be used to create the model.
+
+It is important to note that, if we had perfect data, we would not need a model [@tellingstorieswithdataTellingStories]. The purpose of a model is to generalize patterns from the data and make predictions, so MRP is not guaranteed to provide perfect accuracy. I assume there exists a relationship between predictors (race, gender, marital status, age group and highest level of education) and the voting outcome, and this relationship is consistent between the sample and the post-stratification dataset. Therefore, the model is not perfectly flawless, and given that the accuracy of MRP depends on the accuracy of the model, uncertainties and imprecision are inevitable.
+
+Logistic regression is highly useful when dealing with a binary outcome variable. Instead of using ‘pid3’ variable in the survey, which gives either ‘Democrat’ or ‘Republican’, I create a new variable named ‘vote_biden’. In this new setup, ‘vote_biden’ will be assigned a value of 1 if ‘pid3' is Democrat and 0 if ‘pid3’ is Republican. For instance, if the average "vote_biden" equals 0.5, then half of the population supports Biden.
+
+The logistic regression equation for predicting the binary outcome of support for Biden (where 1 indicates support) can be expressed as follows:
+\begin{equation}
+\text{logit}(\hat{p}) = \beta_0 + \beta_1 \times \text{gender} + \beta_2 \times \text{race} + \beta_3 \times \text{state} + \beta_4 \times \text{age} + \beta_5 \times \text{marital} + \beta_6 \times \text{education} \label{eq:logit1}
+\end{equation}
+
+where:
+
+-  $\text{logit}(\hat{p}) = \log\left(\frac{\hat{p}}{1 - \hat{p}}\right)$
+-  $\hat{p}$ is the predicted probability of supporting Biden occurring
+-  $\beta_0$ is the intercept term, representing the value if all the predictors are zero
+-  $\beta_1$, $\beta_2$, $\beta_3$, $\beta_4$, $\beta_5$, $\beta_6$ are the coefficients corresponding to the predictor variables (gender, race, state, age, marital, education).
+
+The predicted probability, $\hat{p}$, of supporting Biden can be obtained by applying the logistic function to the log-odds, shown in Equation \ref{eq:logistic2}:
+\begin{equation}
+\hat{p} = \frac{1}{1 + e^{-(\beta_0 + \beta_1 \times \text{gender} + \beta_2 \times \text{race} + \beta_3 \times \text{state} + \beta_4 \times \text{age} + \beta_5 \times \text{marital} + \beta_6 \times \text{education}}}
+\label{eq:logistic2}
+\end{equation}
 
 ```{r}
 #| include: false
@@ -374,6 +436,11 @@ coefficients <- broom::tidy(model, conf.int = TRUE)
 #| tbl-cap: Coefficients of the Voting Model
 coefficients |> kable(digits = 2)
 ```
+I use the binomial distribution to model the probability of the binary outcome in the survey. [@tbl-coefficients] shows the estimates for the coefficients that will fit into the logistic regression equation, as well as the standard error, statistic, p-value, and the 95% confidence level for each coefficient. The statistic is the t-statistic for testing whether the corresponding coefficient is significantly different from zero. A 95% confidence level means that if I were to repeat the sampling and estimation many times, I would expect the true value of the coefficient to fall within this interval in approximately 95% of repetitions. The ‘state’ variable has relatively larger p-values and standard errors when compared to other predictors in [@tbl-coefficients]. Terms like ‘statenameNorth Dakota’, ‘statenameSouth Dakota’, ‘statenameWest Virginia’ and ‘maritalSeparated’ have p-values greater than 0.8, implying their evidence against the null hypothesis is weak. In simpler terms, this suggests that these characteristics may not strongly influence the likelihood of individuals supporting Biden, as the statistical evidence supporting such an influence is not particularly strong. The greater the estimate, the higher the likelihood that people with these characteristics will vote for Biden.
+
+[@fig-coefficients_model] visualizes the estimates of coefficients as black dots and the confidence intervals as blue lines from a logistic regression model. The length of each blue line (error bar) reflects the confidence interval for the corresponding coefficient. The zero on the x-axis denotes neutrality. For example, an estimate of -0.1 implies a slight inclination toward voting for Trump. Most data points in [@fig-coefficients_model] are situated to the right of the zero on the x-axis, indicating a higher overall inclination toward supporting Biden. The further to the right both the points and blue lines extend, the greater the likelihood that individuals with these characteristics will vote for Biden. Conversely, points and lines extending to the left suggest a higher probability of supporting Trump. From [@fig-coefficients_model], a person from the District of Columbia is most likely to support Biden, a person from Alaska is most likely to support Trump, and someone who is separated is swing and unpredictable.
+
+After constructing a model, I categorize individuals in both survey and census datasets according to their race, age, gender, marital status, education level and state of residence. I compute both the total count and the proportion for each group. Next, utilizing the survey data, I calculate the proportion of voters that tend to support Biden within each demographic group including the confidence intervals, and apply this proportion to the census dataset for weight adjustment, ensuring a more representative population composition.
 
 ```{r}
 #| message: false
@@ -432,6 +499,11 @@ data1 <- data_app_clean |>
 
 data2 <- inner_join(data1, vote_for_biden, by = "statename") |> filter(vote_biden == '1')
 ```
+# Results
+## Results Using the Original Dataset
+[@fig-sample_and_population] illustrates the proportion of voters in each state supporting Biden after post-stratify. The red points represent the percentage of voting for Biden from the survey data. The black points represent the predicted voting percentage based on the model generated from the survey, in other words, the black points are post-stratified. To enhance clarity and visualize the fluctuations, solid black lines and dashed red lines are constructed to connect the points from the corresponding data source. A purple ribbon, denoting the range of potential outcomes or variations around the predicted values, is included. This visual representation of possible deviations employs the 95% confidence interval. Moreover, a purple line at 50% serves as a reference. States with points above this line, such as Wisconsin and Massachusetts, indicate more people supporting Biden, while states below the line, including Utah and Montana, have more residents voting for Trump. States like Minnesota, where the voting percentage hovers around 50% and the confidence interval spans both above and below the purple line, are commonly referred to as swing states. Overall, the predicted outcomes closely align with the survey results. With the unbalanced dataset, it appears that a greater number of states favour Biden over Trump. Based on this observation, I predict that Biden will establish a comfortable lead in the popular votes in the upcoming Presidential Election.
+
+[@fig-population_map] is a state bin plot of the predicted support for Joe Biden and Donald Trump by states in a gradient colour scale. The colour intensity indicates the level of support. The redder a state appears, the higher the predicted proportion of support for Trump. The bluer a state is, the higher the predicted proportion of support for Biden. Once again, it appears that a greater number of states prefer Biden over Trump, with an overall 62.96% supporting Biden.
 
 ```{r}
 #| message: false
@@ -468,7 +540,7 @@ data2 |>
 #| echo: false
 #| warning: false
 #| label: fig-population_map
-#| fig-cap: Predicted support for Joe Biden and Donald Trump by State
+#| fig-cap: Predicted Support for Joe Biden and Donald Trump by State
 vote_for_biden |>
   ggplot(aes(fill = biden_predict, state = statename)) + 
   geom_statebins() + 
@@ -490,6 +562,8 @@ total_proportion <- sum(final_data$biden_predict * (final_data$n / sum(final_dat
 total_proportion
 ```
 
+## A Quick Overview of Results Using the Balanced Dataset
+Similar to the summary of [@fig-coefficients_model], I use the balanced dataset, along with the logistic regression and Equation \ref{eq:logit1}, to create another model, and [@fig-coefficients_model2] displays the estimates of coefficients. Black points represent estimates, the orange lines depict confidence intervals, and the zero on the x-axis denotes neutrality. In [@fig-coefficients_model2], New Hampshire and the District of Columbia have the most citizens supporting Biden, while white people and married people are most likely to support Trump. 
 
 ```{r}
 #| include: false
@@ -565,6 +639,10 @@ data3 <- data_app_clean_20 |>
 data4 <- inner_join(data3, vote_for_biden_20, by = "statename") |> filter(vote_biden == '1')
 ```
 
+[@fig-sample_and_population_20] shows the result using MRP, indicating the proportion of voters in each state voting for Biden. Black represents population prediction, and red represents the survey. The orange ribbon shows the range of potential variations around the predicted values using a 95% confidence interval. The predicted outcomes are close to the survey. Compared to [@fig-sample_and_population], [@fig-sample_and_population_20] is more balanced and reasonable, as it presents comparable numbers of states above and below the orange line which represents 50% support for Biden. Traditionally Republican-leaning states like Georgia, Texas, and Nebraska turn red in [@fig-sample_and_population_20]. 
+
+[@fig-balanced_map] is a map of the US, using colours to show the predicted support. The redder a state appears, the higher the predicted proportion of support for Trump. The bluer a state is, the higher the predicted proportion of support for Biden. There are 23 red states and 28 blue states, but still, 57.61% of the total population will vote for Biden, which is more than half.
+
 ```{r}
 #| message: false
 #| echo: false
@@ -592,7 +670,7 @@ data4 |>
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_blank()) +
-  labs(x = "State", y = "Voting Percentage for Biden (Balanced)")
+  labs(x = "State", y = "Voting Percentage for Biden")
 ```
 
 ```{r}
@@ -600,7 +678,7 @@ data4 |>
 #| echo: false
 #| warning: false
 #| label: fig-balanced_map
-#| fig-cap: Predicted support for Joe Biden and Donald Trump by State (Using Balanced Survey Results)
+#| fig-cap: Predicted support for Joe Biden and Donald Trump by State (Balanced Survey Results)
 vote_for_biden_20 |>
   ggplot(aes(fill = biden_predict_20, state = statename)) + 
   geom_statebins() + 
@@ -622,4 +700,74 @@ total_proportion_20 <- sum(final_data_20$biden_predict_20 * (final_data_20$n / s
 total_proportion_20
 ```
 
+\newpage
+# Discussions
+As noted in the introduction, the outcome of the presidential election depends on electoral college votes, and unexpected outcome, like the one in 2016, may occur. Whether using the balanced or unbalanced datasets, both suggest a substantial lead for Biden in popular votes, surpassing 10%. This significant advantage makes it highly likely for him to secure more electoral college votes and thus, ensure his re-election as the President of the United States.
+
+## Geography, Ethnicity and Gender
+Based on both [@fig-population_map] and [@fig-balanced_map], states that support Trump are more concentrated in the middle and Midwest parts of the US, whereas coastal states and the Northeast tend to favour Biden. Although Republicans and Democrats currently appear competitive, this wasn't the case thirty years ago. In the 1980, 1984, and 1988 presidential elections, the Republican Party was strongly favoured, with a maximum of 11 out of 51 states supporting the Democratic Party [@270towin270toWin2024]. However, a huge change occurred in 1992 when 33 states gave their electoral college votes to the Democratic Party, including influential states like California with 54 votes and New York with 28 votes. Since then, the two parties have been competitive, solidifying the pattern of the Midwest preferring the Republicans and coastal states leaning towards the Democrats [@270towin270toWin2024]. 
+
+The shift in voting patterns during the 1990s, in addition to Bill Clinton's successful presentations, can be attributed to the rising number of immigrants during that period. There was a rapid increase in the number of immigrants in the 1990s because of immigration act of 1990 [@justice], while [@tbl-coefficients] has demonstrated a preference for the Democratic Party among Asians and other racial groups over white individuals. Furthermore, nowadays, blue states have more Asians and people in other race [@worldpopulationreviewStatesRace]. For example, 14.83% of population in the blue state California are Asian, 22.23% are other races, while only 2.37% of the residences in Indiana are Asians and 5.67% are other races [@worldpopulationreviewStatesRace]. 
+
+The Democrats are the liberal political party, with an emphasis on civil rights, safety issues and student loan forgiveness [@studentaid]. The Republicans are the conservative party, which is also known as the Grand Old Party. It has stood for lower taxes, border issues and gun rights. 
+
+The geographic distribution of red states along the southern border, as illustrated in [@fig-population_map] and [@fig-balanced_map], is noteworthy. This alignment could be linked to Republicans addressing broader issues. Furthermore, Trump's emphasis on improving the economy in the Midwest, where states traditionally lean Republican, provides another explanation for their preference for Trump compared to wealthier coastal states. This may also be correlated to the rural and suburban demographics.
+
+In terms of abortion rights, women’s rights, and LGBTQ+ rights, the Democratic Party typically embraces more progressive positions, advocating for gender and LGBTQ+ equality to a greater extent. Conversely, the Republican Party tends to have more conservative stances on social issues, advocating for restrictions on abortion and often holding a more conservative stance on LGBTQ+ rights. As a result of these differing policy positions, there is a tendency for females to show greater support for Democratic candidates, such as Biden, compared to their male counterparts as shown in [@tbl-coefficients].
+
+It is essential to note that these are generalizations. Individual political preferences can vary significantly within each demographic group.
+
+## Age Group, Education and Marital Status
+Using [@tbl-coefficients], we observe a trend where a higher proportion of younger individuals express support for Biden, while the older generation tends to favour Trump. This difference could be attributed to the younger generation's emphasis on social justice and LGBTQ+ rights. Given there are definitely more sexual minorities among the youth, there is a tendency towards  their alignment with the Democratic Party and Biden. On the other hand, the older generation may be influenced by considerations related to national security and conservative values, which are often associated with the Republican Party. Widowed and married people, compared to single, divorced and separated individuals, prefer Trump is also observed in [@tbl-coefficients]. This can be influenced by several factors, including the higher average age of widowed and married individuals compared to the single ones. Additionally, some single individuals that consciously choose not to marry are more likely to be untraditional.
+
+[@tbl-coefficients] also shows people with a higher level of education favour Biden more often than people with lower level of education. Considering Biden's proposed student debt relief plan, which aims to offer targeted debt relief to low- and middle-income families, voters with a strong concern for education may find themselves inclined to support Biden. The Northeast states have a lot of top universities including Ivy League. As seen in [@fig-population_map] and [@fig-balanced_map], the strong support for Biden in the Northeast could be correlated to the average education level of the people in this region.
+
+Again, it is crucial to acknowledge that these are generalizations, and individual political preferences can vary significantly.
+
+## Biases and Weaknesses
+The sample survey was collected using participants from the YouGov panel, which may introduce potential biases, as online survey participation is not evenly distributed across the entire population. This could result in the underrepresentation of certain demographic groups, especially older individuals and those with lower socioeconomic status. Additionally, the self-selection bias of individuals choosing to participate in paid online surveys may lead to distinct characteristics among respondents, further skewing the representation. The active political engagement of YouGov participants could overemphasize the views of individuals that are interested in politics, potentially misrepresenting the total population.
+
+An evident weakness is the imbalance between the proportions of Democratic and Republican supporters in the survey, as highlighted by [@fig-survey_vote]. Among the respondents in the survey, 44.7% voted for Biden in 2020 and 30.7% voted for Trump as shown in [@tbl-survey_votes_2020], while the actual popular vote ratio in 2020 is 51.3%:46.9% [@cookpolitical2020Popular]. This imbalance permeates figures generated from the unbalanced dataset, including [@fig-coefficients_model], [@tbl-coefficients], [@fig-sample_and_population] and [@fig-population_map], potentially skewing the results toward Democrats. In order to adjust this, I created a balanced dataset, but this balanced sample has fewer observations than the unbalanced sample.
+
+Illustrating this weakness with a specific example, consider the small representation from Wyoming in the original, uncleaned survey dataset. Out of 20,000 observations, only 30 are from Wyoming, a traditionally red state with 69.9% population supporting Trump and 26.6% supporting Biden in 2020 [@cookpolitical2020Popular]. However, for those 30 participants from Wyoming, only 6 of them consider themselves as Republicans, and 10 are Democrats, 14 are Independent or other. Another example is that, 140 out of 383 respondents living in Indiana are Democrats, 97 of them are Republicans, while Trump had 16% more Indiana popular votes than Biden in the last election [@cookpolitical2020Popular]. This type of disparity, where the sample composition greatly deviates from the state's political leanings, was even enlarged after excluding those who are not Democrats or Republicans. While MRP and post-stratification attempt to adjust this imbalance, they do not fully eliminate the underrepresentation, as both Wyoming and Indiana are pretty blue in both [@fig-population_map] and [@fig-balanced_map]. 
+
+Another weakness arises from variations in categorization. For example, the 'race' variable has different options in the survey and census datasets, and the options cannot be perfectly combined. Merging these variables introduces complexities and reduces the precision of the model. Moreover, the marital status variable in the survey has another option as Domestic/civil partnership, but there is no same or similar generalization in the census. The exclusion of this marital status option from the survey dataset further contributes to this challenge. Despite efforts to accurately merge based on questionnaire descriptions, these differences bring limitations to the analysis's accuracy. Detailed information on these discrepancies is provided in the Appendix.
+
+## Next Steps
+The predictive model generated from this analysis, with its strengths and limitations, serves as a foundation for ongoing discussions on campaign strategies, policy implications, and the broader implications for democracy. While this analysis provides some understandings of the factors influencing voter preferences, it is crucial to acknowledge the inherent uncertainties in forecasting political events.
+
+For future exploration, I would suggest that survey companies use consistent demographic generalizations as those used in census data to minimize additional biases. Special attention should be given to groups that have been underrepresented to enhance the precision of predictive models. It is recommended that future research delves into the dynamics of electoral behaviour, particularly by examining the outcome of 2024 election and the repercussions of the COVID-19 pandemic. This will enable a comprehensive understanding of unforeseen events that might alter  political preferences among citizens.
+
+\newpage
+
+\appendix
+
+# Appendix
+## Data Cleaning
+In the America’s Political Pulse survey data, I only select variables ‘inputstate’, ‘gender’, ‘race’, ‘educ’, ‘pid3’, ‘marstat’, ‘birthyr’, ‘presvote20post’. In the IPUMS census data, I select variables ‘SEX’, ‘MARST’, ‘STATEICP’, ‘RACE', ‘EDUC’, ‘AGE’. The ‘inputstate’ variable from the survey contains 51 states, and the ‘STATEICP’ from the census contains 51 codes of states using the coding scheme developed by the Inter-University Consortium for Political and Social Research (ICPSR). To ensure consistency between these datasets, I have created three additional variables in both cleaned datasets: 'statename' (state name), 'state_abb' (state abbreviation), and 'stateicp' (state codes).
+
+In the ‘race’ variable, the survey encompasses eight categories: White, Black, Hispanic, Asian, Native American, Two or more races, Other and Middle Eastern. The ‘RACE’ from the census has a different set: White, Black/African American, American Indian or Alaska Native, Chinese, Japanese, Other AsiaFn or Pacific Islander, Other race/nec, Two major races, Three or more major races. Since both Asian and Middle Eastern, both White and Hispanic are listed in the survey, to harmonize them, I have grouped ‘Hispanic’, ‘Native American’, ‘Two or more races’, ‘Other’, and ‘Middle Eastern’ from the survey as ‘Other race’. In the census, ‘Chinese’, ‘Japanese’, ‘Other Asian or Pacific Islander’ are combined into ‘Asian’, and ‘American Indian or Alaska Native’, ‘Other race/nec’, ‘Two major races’, ‘Three or more major races’ are combined into ‘Other race’ using the explanation on IPUMS website [@ipumsIPUMS]. Therefore, the renamed column ‘race’ from both datasets only contains ‘White’, ‘Black’, ‘Asian’, ‘Other race’, which is the only way merge these two variables.
+
+Regarding the ‘marstat’ variable from APP, I have merged ‘Married (spouse present)’ and ‘Married (spouse absent)’ into ‘Married' and excluded instances with ‘Domestic/civil partnership.’ Thus, the renamed 'marital' column contains ‘Married’, ‘Separated’, ‘Divorced’, ’Widowed’, ‘Never married’ in both datasets.
+
+I only keep individuals older or equal to 18, and individuals who support either the Democratic Party or the Republican Party. To align 'AGE' in IPUMS with 'birthyr' in APP, a new variable 'Age' is created by subtracting 'birthyr' from 2024. Age groups are then formed as 18-29, 30-44, 45-59, and 60+. The gender variables are renamed to ‘gender’ in both cleaned datasets. A new variable called ‘vote_biden’ is created to give 1 for individuals consider themselves as Democrat in pid3 column, and give 0 for individuals consider themselves as Republican in pid3 column.
+
+For ‘EDUC’, I have standardized values in both datasets by creating a new 'education' column, representing ‘No HS’, ‘High school graduate’, ‘Some college’, ‘2-year’, ‘4-year’, and ‘Post grad’ based on IPUMS and survey questionnaire details, using the questionnaire text from IPUMS [@ipumsIPUMS] and the survey questions details [@polarization].
+
+To address the imbalance in the survey’s 2020 vote (‘presvote20post’) ratios, I have adjusted them to match the actual 51.3%:46.9% ratio, creating a balanced dataset while keeping other variables consistent.
+
+Lastly, for the US Election 2020 dataset, I combine observations within the same states, creating two columns ‘Joe_Biden’ and ‘Donald_Trump’, with corresponding votes in each state.
+
+## Coefficients Estimates Table Using Balanced Dataset  {#sec-appendix-dataset}
+```{r}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: tbl-coefficients_20
+#| tbl-cap: Coefficients of the Voting Model (Balanced)
+coefficients_20 |> kable(digits = 2)
+```
+\newpage
+
+# References
 
